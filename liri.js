@@ -29,6 +29,10 @@ switch (command) {
     case "do-what-it-says":
     doWhatItSay();
     break;
+
+    default:
+    console.log("{Please enter a command: my-tweets, spotify-this-song, movie-this, do-what-it-says}");
+    break;
 };
 
 
@@ -40,8 +44,18 @@ function twitterShow(input){
     client.get('statuses/user_timeline', params, function(error, tweets, response) {
         if (!error) {
             for (i = 0; i < tweets.length; i ++){
-                console.log("@" + tweets[i].user.screen_name + "-Tweet"+ (i+1) + ": " + tweets[i].text + "\n Created At: " + tweets[i].created_at);
-                console.log("=================================================================")
+                var divider = "\n=================================================================\n\n";
+                var tweetData = [
+                    "@" + tweets[i].user.screen_name, 
+                    "-Tweet"+ (i+1) + ": " + tweets[i].text,
+                    "\n Created At: " + tweets[i].created_at
+                ].join("+");
+
+                fs.appendFile('log.txt', tweetData+divider, (err) => {
+                    if (err) throw err;
+                    console.log(tweetData+divider);
+                });
+
             }
         } else { 
             console.log(error);
@@ -62,11 +76,18 @@ function spotifySearch(input){
         
         for (i = 0; i < data.tracks.items.length; i++) {
             var info = data.tracks.items;
-	        console.log("Artist(s): " + info[i].artists[0].name);
-	        console.log("Song Name: " + info[i].name);
-	        console.log("Preview Link: " + info[i].preview_url);
-            console.log("Album: " + info[i].album.name);
-            console.log("=================================================================")
+            var divider = "\n=================================================================\n\n";
+            var spotifyData =[
+                "Artist(s): " + info[i].artists[0].name,
+                "Song Name: " + info[i].name,
+                "Preview Link: " + info[i].preview_url,
+                "Album: " + info[i].album.name
+            ].join("\n");
+
+            fs.appendFile('log.txt', spotifyData+divider, (err) => {
+                if (err) throw err;
+                console.log(spotifyData+divider);
+            });
         }
     });
 };
@@ -82,15 +103,23 @@ function movieSearch(input){
 		
 		if (!error && response.statusCode === 200) {
 
-		    console.log("Title: " + JSON.parse(body).Title);
-		    console.log("Release Year: " + JSON.parse(body).Year);
-		    console.log("IMDB Rating: " + JSON.parse(body).imdbRating);
-		    console.log("Rotten Tomatoes Rating: " + JSON.parse(body).Ratings[1].Value);
-		    console.log("Country: " + JSON.parse(body).Country);
-		    console.log("Language: " + JSON.parse(body).Language);
-		    console.log("Plot: " + JSON.parse(body).Plot);
-            console.log("Actors: " + JSON.parse(body).Actors);
-            console.log("=================================================================")
+            var divider = "\n=================================================================\n\n";
+            var movieData = [
+                "Title: " + JSON.parse(body).Title,
+		        "Release Year: " + JSON.parse(body).Year,
+		        "IMDB Rating: " + JSON.parse(body).imdbRating,
+		        "Rotten Tomatoes Rating: " + JSON.parse(body).Ratings[0].Value ,
+		        "Country: " + JSON.parse(body).Country,
+		        "Language: " + JSON.parse(body).Language,
+		        "Plot: " + JSON.parse(body).Plot,
+                "Actors: " + JSON.parse(body).Actors,
+            ].join("\n");
+            
+    
+            fs.appendFile('log.txt', movieData+divider, (err) => {
+                if (err) throw err;
+                console.log(movieData+divider)
+            });
         }
 
         if(input === "Mr. Nobody"){
@@ -107,23 +136,21 @@ function doWhatItSay(){
 
 		if (error) {
     		return console.log(error);
-  	}
+        }
 
 		// Then split it by commas (to make it more readable)
-		var dataArr = data.split(",");
-
+		var content = data.split(",");
 		// Each command is represented. Because of the format in the txt file, remove the quotes to run these commands. 
-		if (dataArr[0] === "spotify-this-song") {
-			var songcheck = dataArr[1].slice(1, -1);
-			spotifySearch(songcheck);
-		} else if (dataArr[0] === "my-tweets") {
-			var tweetname = dataArr[1].slice(1, -1);
+		if (content[0] === "spotify-this-song") {
+			var songname = content[1].slice(1, -1);
+			spotifySearch(songname);
+		} else if (content[0] === "my-tweets") {
+			var tweetname = content[1].slice(1, -1);
 			twitterShow(tweetname);
-		} else if(dataArr[0] === "movie-this") {
-			var movie_name = dataArr[1].slice(1, -1);
+		} else if(content[0] === "movie-this") {
+			var movie_name = content[1].slice(1, -1);
 			movieSearch(movie_name);
 		} 
-		
 });
 
 };
